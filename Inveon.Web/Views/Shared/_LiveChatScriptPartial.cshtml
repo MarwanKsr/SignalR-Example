@@ -1,0 +1,47 @@
+﻿<script>
+    function ShowMessageArea() {
+        document.getElementById("messageArea").classList.toggle("d-none");
+        document.getElementById("arrowButton").classList.toggle("fa-chevron-up");
+        document.getElementById("arrowButton").classList.toggle("fa-chevron-down");
+    }
+    function CreateMessage() {
+        let content = document.getElementById("message").value;
+        fetch("/customer/home/LiveChat", {
+            method: "POST",
+            body: JSON.stringify({
+                content
+            }),
+            headers: {
+                'content-type': 'application/json'
+            }
+        });
+        document.getElementById("message").value = "";
+    }
+    $(document).ready(function () {
+        var connection = new signalR.HubConnectionBuilder().withUrl("/LiveChatHub").build();
+        connection.on("SendMessage", (fullName, content) => {
+            var messageDiv = $("#lastMessages");
+            var time = new Date().toLocaleTimeString();
+            var message = `
+                <div class="mb-2 rounded w-100 bg-light p-2 d-flex flex-column align-items-end">
+                    <div class="d-flex justify-content-between flex-row-reverse">
+                        <div class="text-uppercase text-dark fw-bold">
+                            ${fullName}
+                        </div>
+                        <div class="text-secondary mx-2">
+                            ${time}
+                        </div>
+                    </div>
+                        <div>
+                            ${content}
+                        </div>
+                </div>`;
+            messageDiv.append(message);
+        });
+        connection.start().then(function () {
+            console.log("connected");
+        }).catch(function (err) {
+            console.error(err.toString());
+        });
+    });
+</script>
